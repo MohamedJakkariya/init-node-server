@@ -1,10 +1,10 @@
 /*
   @params : Response, Options
   @type   : Object , Object
-  @desc Get all data from the given table
+  @desc   : Get all data from the given tables
   @return : Promise 
 */
-exports.getAllData = (res, options) => {
+exports.getAllData = (options) => {
   return new Promise((resolve, reject) => {
     connection.query(
       `SELECT ${options.projection} FROM ${options.table_names}`,
