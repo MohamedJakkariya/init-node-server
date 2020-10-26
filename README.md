@@ -1,0 +1,1 @@
+This package is used to develop mysql ease with node.
