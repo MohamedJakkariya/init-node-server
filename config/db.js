@@ -17,7 +17,7 @@ var connection = mysql.createConnection(db_config);
 // set connection to global as a global varibale
 global.connection = connection;
 
-const connect = () => {
+function connect() {
 	//- Establish a new connection
 	connection.connect(function (err) {
 		if (err) {
@@ -31,29 +31,41 @@ const connect = () => {
 			console.log('\n\t *** New connection established with the database. ***');
 		}
 	});
-};
+}
 
 //- Reconnection function
 function reconnect(connection) {
-	console.log('\n New connection tentative...');
+	console.log('\n Try to next connection ...');
 
-	//- Destroy the current connection variable
-	if (connection) connection.destroy();
+	setTimeout(() => {
+		//- Destroy the current connection variable
+		if (connection) connection.destroy();
 
-	//- Create a new one
-	connection = mysql.createConnection(db_config);
-	global.connection = connection;
+		//- Create a new one
+		connection = mysql.createConnection(db_config);
+		global.connection = connection;
 
-	connection.connect(function (err) {
-		if (err) {
-			console.log(' Reason of ', err.sqlMessage);
-			//- Try to connect every 2 seconds.
-			setTimeout(reconnect, 2000);
-		} else {
-			console.log('\n\t *** New connection established with the database. ***');
-			return connection;
-		}
-	});
+		connection.connect(function (err) {
+			if (err) {
+				console.log(' Reason of ', {
+					code: err.code,
+					errno: err.errno,
+					sqlMessage:
+						err.sqlMessage,
+					sqlState: err.sqlState,
+					fatal: err.fatal,
+				});
+
+				//- Try to connect every 2 seconds.
+				setTimeout(reconnect, 2000);
+			} else {
+				console.log(
+					'\n\t *** New connection established with the database. ***',
+				);
+				return connection;
+			}
+		});
+	}, 5000);
 }
 
 //- Error listener
@@ -118,13 +130,13 @@ connection.on('error', function (err) {
 	}
 });
 
-// Handle errors
+// Handle uncaught errors from disconnecting db connection
 process.on('uncaughtException', (err) => {
 	console.log('Uncaught Exception ', err);
 	reconnect(connection);
 });
 
 module.exports = {
-	connect,
 	reconnect,
+	connect,
 };

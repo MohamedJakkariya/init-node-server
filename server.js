@@ -1,14 +1,20 @@
 /** @format */
 
 require('dotenv').config();
+var express = require('express');
+var logger = require('morgan');
 const path = require('path');
 
-import { connect } from './config/db';
+const { connect } = require('./config/db');
 
 // Set default root path
 global.ROOT = path.resolve(__dirname);
 
-console.log(ROOT);
+// Configuration variables
+const app = express();
+app.use(logger('dev'));
 
-// set db connections 
+// Established Configured databse connection
 connect();
+
+module.exports = app;
