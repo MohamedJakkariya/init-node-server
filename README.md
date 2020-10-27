@@ -1,6 +1,6 @@
 This package is used to develop mysql ease with node.
 
-## Databse Functions Overview:
+## Database Functions Overview:
 
 ```
 getAllData()
