@@ -8,7 +8,7 @@ const path = require('path');
 const { connect } = require('./config/db');
 
 // Set default root path
-global.ROOT = path.resolve(__dirname);
+global.ROOT_PATH = path.resolve(__dirname);
 
 // Configuration variables
 const app = express();
