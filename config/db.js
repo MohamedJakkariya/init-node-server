@@ -1,18 +1,23 @@
 /** @format */
 
 const mysql = require('mysql');
+
+// db configurations
 const db_config = {
-	host: process.env.RDS_HOSTNAME || '',
-	user: process.env.RDS_USERNAME || '',
-	password: process.env.RDS_PASSWORD || '',
-	port: process.env.RDS_PORT || 3000,
-	database: process.env.RDS_DATABASE || '',
+	host: process.env.DB_HOSTNAME,
+	user: process.env.DB_USERNAME,
+	password: process.env.DB_PASSWORD,
+	port: process.env.DB_PORT,
+	database: process.env.DB_NAME,
 };
+
 //Connect to the Amazon RDS instance
 var connection = mysql.createConnection(db_config);
+
+// set connection to global as a global varibale
 global.connection = connection;
 
-const handleDbConnection = () => {
+const connect = () => {
 	//- Establish a new connection
 	connection.connect(function (err) {
 		if (err) {
@@ -44,7 +49,7 @@ function reconnect(connection) {
 			console.log(' Reason of ', err.sqlMessage);
 			//- Try to connect every 2 seconds.
 			setTimeout(reconnect, 2000);
-		} else {   
+		} else {
 			console.log('\n\t *** New connection established with the database. ***');
 			return connection;
 		}
@@ -113,7 +118,13 @@ connection.on('error', function (err) {
 	}
 });
 
+// Handle errors
+process.on('uncaughtException', (err) => {
+	console.log('Uncaught Exception ', err);
+	reconnect(connection);
+});
+
 module.exports = {
-	handleDbConnection,
+	connect,
 	reconnect,
 };

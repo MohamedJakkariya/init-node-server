@@ -17,3 +17,12 @@ deleteOne()
 
 foreignKeyMode()
 ```
+
+# Dependancy
+
+| Package | Version |
+| :------:|:-------:|
+| mysql   |  8.2.0  |
+| -------:|:-------:|
+| dotenv  |  2.18.1 |
+| -------:|:-------:|
