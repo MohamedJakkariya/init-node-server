@@ -10,6 +10,10 @@ This package under development if you want to use just try for alpha-0.0.1v test
 
 ## Installation
 
+```npm2yarn
+npm i create-nose-server
+```
+
 ## Database Functions Overview:
 
 ```
