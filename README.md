@@ -1,5 +1,5 @@
 ### NOTE : 
-This package under development if you want to use just try for alpha-0.0.1v testing.
+This package under development if you want to use just try for alpha-1.0.1v testing.
 
 - This package is for easy to make NOde Sql Express server(NOSE) with single line.
 

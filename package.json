@@ -18,5 +18,20 @@
   "devDependencies": {
     "morgan": "^1.10.0",
     "nodemon": "^2.0.6"
+  },
+   "homepage": "https://github.com/MohamedJakkariya/create-nose-server#readme",
+   "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MohamedJakkariya/create-nose-server.git"
+  },
+  "keywords": [
+    "Nodejs",
+    "SQL",
+    "Express",
+    "Server",
+    "NOSE template"
+  ],
+  "bugs": {
+    "url": "https://github.com/MohamedJakkariya/create-nose-server/issues"
   }
 }
