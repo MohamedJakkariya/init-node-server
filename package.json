@@ -33,5 +33,6 @@
   ],
   "bugs": {
     "url": "https://github.com/MohamedJakkariya/create-nose-server/issues"
-  }
+  },
+  "publishConfig": { "registry": "https://npm.pkg.github.com/" }
 }
