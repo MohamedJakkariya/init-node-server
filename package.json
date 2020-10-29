@@ -1,38 +1,40 @@
 {
-  "name": "create-nose-server",
-  "version": "1.0.1",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "node ./config/www",
-    "devstart": "nodemon ./config/www"
-  },
-  "author": "Mohamed Jakkariya",
-  "license": "MIT",
-  "dependencies": {
-    "debug": "^4.2.0",
-    "dotenv": "^8.2.0",
-    "express": "^4.17.1",
-    "mysql": "^2.18.1"
-  },
-  "devDependencies": {
-    "morgan": "^1.10.0",
-    "nodemon": "^2.0.6"
-  },
-   "homepage": "https://github.com/MohamedJakkariya/create-nose-server#readme",
-   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/MohamedJakkariya/create-nose-server.git"
-  },
-  "keywords": [
-    "Nodejs",
-    "SQL",
-    "Express",
-    "Server",
-    "NOSE template"
-  ],
-  "bugs": {
-    "url": "https://github.com/MohamedJakkariya/create-nose-server/issues"
-  },
-  "publishConfig": { "registry": "https://npm.pkg.github.com/" }
+	"name": "init-node-server",
+	"version": "1.0.1",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"start": "node ./config/www",
+		"devstart": "nodemon ./config/www"
+	},
+	"author": "Mohamed Jakkariya",
+	"license": "MIT",
+	"dependencies": {
+		"debug": "^4.2.0",
+		"dotenv": "^8.2.0",
+		"express": "^4.17.1",
+		"mysql": "^2.18.1"
+	},
+	"devDependencies": {
+		"morgan": "^1.10.0",
+		"nodemon": "^2.0.6"
+	},
+	"homepage": "https://github.com/MohamedJakkariya/init-node-server#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/MohamedJakkariya/init-node-server.git"
+	},
+	"keywords": [
+		"Nodejs",
+		"SQL",
+		"Express",
+		"Server",
+		"NOSE template"
+	],
+	"bugs": {
+		"url": "https://github.com/MohamedJakkariya/init-node-server/issues"
+	},
+	"publishConfig": {
+		"registry": "https://npm.pkg.github.com/"
+	}
 }
