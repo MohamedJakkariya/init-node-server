@@ -1,6 +1,6 @@
 {
-	"name": "create-nose-server",
-	"version": "1.0.1",
+	"name": "init-node-server",
+	"version": "1.0.0",
 	"description": "",
 	"main": "index.js",
 	"scripts": {

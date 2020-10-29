@@ -6,14 +6,16 @@
  * @return : Promise
  */
 
-exports.getAllData = (options) => {
+exports.getAllData = async (options) => {
 	return new Promise((resolve, reject) => {
 		connection.query(
 			`SELECT ${options.projection} FROM ${options.table_names}`,
 			function (error, results, fields) {
 				if (error) {
-					console.log(error);
-					return reject('Msg => ', error.sqlMessage);
+					return reject({
+						sql: error.sql,
+						msg: error.sqlMessage,
+					});
 				}
 				resolve(results);
 			},
@@ -28,17 +30,16 @@ exports.getAllData = (options) => {
  * @desc :   Get all data from the given tables
  * @return : Promise
  */
-exports.getData = (res, options) => {
+exports.getData = (options) => {
 	return new Promise((resolve, reject) => {
 		connection.query(
-			`SELECT ${options.projection} FROM ${options.table_name} WHERE ${options.field_name} = ?`,
+			`SELECT ${options.projection} FROM ${options.table_name} WHERE ${options.condition} = ?`,
 			options.value,
 			function (error, result, fields) {
 				if (error) {
-					console.log(error);
-					return res.status(500).json({
-						err:
-							'Please try after sometime, if the problem persist then feel free to contact us',
+					return reject({
+						sql: error.sql,
+						msg: error.sqlMessage,
 					});
 				}
 				// console.log(result);
@@ -55,19 +56,19 @@ exports.getData = (res, options) => {
  * @desc :   Get all data from the given tables
  * @return : Promise
  */
-exports.insertOne = (res, options) => {
+exports.insertOne = (options) => {
 	return new Promise((resolve, reject) => {
 		connection.query(
 			`INSERT INTO ${options.table_name} SET ?`,
-			options.post,
+			options.data,
 			function (err, results, fields) {
 				if (err) {
-					console.log(err);
-					return res.status(500).json({
-						err:
-							'Please try after sometime, if the problem persist then feel free to contact us',
+					return reject({
+						sql: error.sql,
+						msg: error.sqlMessage,
 					});
 				}
+				console.log('Inserted successfully!');
 				resolve(results);
 			},
 		);
@@ -81,7 +82,7 @@ exports.insertOne = (res, options) => {
  * @desc :   Get all data from the given tables
  * @return : Promise
  */
-exports.deleteOne = (res, options) => {
+exports.deleteOne = (options) => {
 	return new Promise((resolve, reject) => {
 		connection.query(
 			`DELETE FROM ${options.table_name} WHERE ${options.condition}`,
@@ -89,13 +90,12 @@ exports.deleteOne = (res, options) => {
 			(err, result, fields) => {
 				console.log(err);
 				if (err) {
-					console.log(err);
-					return res.status(500).json({
-						err:
-							'Please try after sometime, if the problem persist then feel free to contact us',
+					return reject({
+						sql: error.sql,
+						msg: error.sqlMessage,
 					});
 				}
-				console.log(result);
+				console.log('Deleted successfully!');
 				resolve(result);
 			},
 		);
@@ -109,18 +109,17 @@ exports.deleteOne = (res, options) => {
  * @desc :   Get all data from the given tables
  * @return : Promise
  */
-exports.getDataFromMultipleTable = (res, options) => {
+exports.getDataFromMultipleTable = (options) => {
 	return new Promise((resolve, reject) => {
 		connection.query(
-			`select ${options.projection}  from ${options.table_names} where ${options.condition} 
+			`select ${options.projection}  from ${options.table_names} where ${options.conditions} 
     `,
 			options.value,
 			(err, results, fields) => {
 				if (err) {
-					console.log(err);
-					return res.status(500).json({
-						err:
-							'Please try after sometime, if the problem persist then feel free to contact us',
+					return reject({
+						sql: error.sql,
+						msg: error.sqlMessage,
 					});
 				}
 				resolve(results);
@@ -136,7 +135,7 @@ exports.getDataFromMultipleTable = (res, options) => {
  * @desc :   Get all data from the given tables
  * @return : Promise
  */
-exports.updateOne = (res, options) => {
+exports.updateOne = (options) => {
 	return new Promise((resolve, reject) => {
 		// console.log(options);
 
@@ -145,13 +144,12 @@ exports.updateOne = (res, options) => {
 			[...options.updating_values, options.value],
 			(err, results, fields) => {
 				if (err) {
-					console.log(err);
-					return res.status(500).json({
-						err:
-							'Please try after sometime, if the problem persist then feel free to contact us',
+					return reject({
+						sql: error.sql,
+						msg: error.sqlMessage,
 					});
 				}
-				console.log(results);
+				console.log('Updated successfully ...');
 				resolve(results);
 			},
 		);
@@ -174,10 +172,9 @@ exports.foreignKeyMode = (mode) => {
 			mode,
 			(err, results, fields) => {
 				if (err) {
-					console.log(err);
-					return res.status(500).json({
-						err:
-							'Please try after sometime, if the problem persist then feel free to contact us',
+					return reject({
+						sql: error.sql,
+						msg: error.sqlMessage,
 					});
 				}
 				console.log(
@@ -187,4 +184,36 @@ exports.foreignKeyMode = (mode) => {
 			},
 		);
 	});
+};
+
+// Options sanitization
+const optionSanitization = async (options) => {
+	const values = Object.values(options);
+	console.log(values);
+
+	const filter_value = values.map((v, i) => {
+		if (v === null || v === undefined || v === '') {
+			return {
+				v,
+				i,
+			};
+		}
+	});
+
+	console.log(filter_value);
+
+	if (filter_value.length > 0) {
+		filter_value.forEach((value) => {
+			return {
+				result: false,
+				field: options[value.i],
+				msg: `Should not be ${filter_value[value.v]}`,
+			};
+		});
+	} else {
+		return {
+			result: true,
+			msg: 'Proper input given.',
+		};
+	}
 };
