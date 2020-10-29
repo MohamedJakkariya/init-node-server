@@ -1,5 +1,5 @@
 {
-	"name": "init-node-server",
+	"name": "create-nose-server",
 	"version": "1.0.0",
 	"description": "",
 	"main": "index.js",
@@ -33,8 +33,5 @@
 	],
 	"bugs": {
 		"url": "https://github.com/MohamedJakkariya/init-node-server/issues"
-	},
-	"publishConfig": {
-		"registry": "https://npm.pkg.github.com/"
 	}
 }
