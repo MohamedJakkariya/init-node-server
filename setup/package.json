@@ -1,5 +1,5 @@
 {
-  "name": "createnodesqlserver",
+  "name": "init-node-server",
   "version": "1.0.0",
   "description": "To make simple node sql exress server with single line",
   "main": "index.js",
@@ -9,6 +9,7 @@
   "author": "Mohamed Jakkariya",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^4.1.0",
     "commander": "^6.2.0"
   }
 }
