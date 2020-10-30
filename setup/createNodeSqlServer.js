@@ -141,7 +141,7 @@ function createNodeServer(name, verbose, npm) {
 
   checkServerName(serverName);
 
-  fs.ensureDirSync(name);
+  fs.ensureDirSync(name); // Alias : createFile()
 
   if (!isSafeToCreateProjectIn(root, name)) {
     process.exit(1);
