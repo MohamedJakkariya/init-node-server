@@ -100,8 +100,8 @@ function init() {
         console.log();
         console.error(
           chalk.yellow(
-            `You are running \`init-node-server\` ${packageJson.version}, which is behind the latest release (${latest}).\n\n`
-            // +'We no longer support global installation of init-node-server.'
+            `You are running \`init-node-server\` ${packageJson.version}, which is behind the latest release (${latest}).\n\n` +
+              'We no longer support global installation of init-node-server.'
           )
         );
         console.log();
@@ -177,7 +177,7 @@ function createNodeServer(name, verbose, useNpm) {
 // To run on the give Directory
 function run(root, serverName, verbose, originalDirectory) {
   // Here put all our dependencies
-  const allDependencies = ['dotenv'];
+  const allDependencies = ['dotenv', 'body-parser'];
 
   console.log('Installing packages. This might take a couple of minutes.');
 
@@ -251,26 +251,6 @@ function install(dependencies, verbose) {
   });
 }
 
-// Executed node script
-function executeNodeScript({ cwd, args }, data) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [...args, '-e', '--', JSON.stringify(data)], {
-      cwd,
-      stdio: 'inherit'
-    });
-
-    child.on('close', code => {
-      if (code !== 0) {
-        reject({
-          command: `node ${args.join(' ')}`
-        });
-        return;
-      }
-      resolve();
-    });
-  });
-}
-
 // Fetch latest version from npm dist-tag and validate with current version
 function checkForLatestVersion() {
   return new Promise((resolve, reject) => {
@@ -307,7 +287,7 @@ function checkServerName(serverName) {
   }
 
   // TODO: there should be a single place that holds the dependencies
-  const dependencies = ['debug', 'dotenv', 'express', 'mysql', 'prettier', 'morgan', 'init-node-server'].sort();
+  const dependencies = ['debug', 'dotenv', 'express', 'mysql', 'prettier', 'morgan'].sort();
 
   if (dependencies.includes(serverName)) {
     console.error(
