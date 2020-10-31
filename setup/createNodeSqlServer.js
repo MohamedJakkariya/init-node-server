@@ -308,6 +308,7 @@ function checkServerName(serverName) {
 
   // TODO: there should be a single place that holds the dependencies
   const dependencies = ['debug', 'dotenv', 'express', 'mysql', 'prettier', 'morgan', 'init-node-server'].sort();
+
   if (dependencies.includes(serverName)) {
     console.error(
       chalk.red(
