@@ -11,6 +11,7 @@ const validateProjectName = require('validate-npm-package-name');
 const fs = require('fs-extra');
 const os = require('os');
 const spawn = require('cross-spawn');
+const tmp = require('tmp');
 
 const packageJson = require('./package.json');
 
@@ -28,8 +29,8 @@ function init() {
       projectName = name;
     })
     .option('--verbose', 'print additional logs')
+    .option('--scripts-version <alternative-package>', 'use a non-standard version of init-node-server')
     .option('--info', 'print environment debug info')
-    .option('--template <path-to-template>', 'specify a template for the created project')
     .allowUnknownOption()
     .on('--help', () => {
       log(`    Only ${chalk.green('<project-directory>')} is required.`);
@@ -95,46 +96,33 @@ function init() {
       }
     })
     .then(latest => {
-      //   if (latest && semver.lt(packageJson.version, latest)) {
-      //     console.log();
-      //   console.error(
-      //     chalk.yellow(
-      //       `You are running \`init-node-server\` ${packageJson.version}, which is behind the latest release (${latest}).\n\n`
-      //       // +'We no longer support global installation of init-node-server.'
-      //     )
-      //   );
-      //     console.log();
-      //     console.log(
-      //       'Please remove any global installs with one of the following commands:\n' +
-      //         '- npm uninstall -g init-nose-derver\n' +
-      //         '- yarn global remove init-nose-derver'
-      //     );
-      //     console.log();
-      // console.log(
-      //   'The latest instructions for creating a new app can be found here:\n' +
-      //     'https://init-nose-derver.dev/docs/getting-started/'
-      // );
-      // console.log();
-      //     process.exit(1);
-      //   } else {
-      createNodeServer(projectName, program.verbose, program.useNpm);
-      // }
+      if (latest && semver.lt(packageJson.version, latest)) {
+        console.log();
+        console.error(
+          chalk.yellow(
+            `You are running \`init-node-server\` ${packageJson.version}, which is behind the latest release (${latest}).\n\n`
+            // +'We no longer support global installation of init-node-server.'
+          )
+        );
+        console.log();
+        console.log(
+          'Please remove any global installs with one of the following commands:\n' +
+            '- npm uninstall -g init-node-server\n'
+        );
+        console.log();
+        console.log(
+          'The latest instructions for creating a new app can be found here:\n' +
+            'https://init-node-server.dev/docs/getting-started/'
+        );
+        console.log();
+        process.exit(1);
+      } else {
+        createNodeServer(projectName, program.verbose, program.useNpm);
+      }
     });
 }
 
 function createNodeServer(name, verbose, useNpm) {
-  const nodeVersion = 10;
-  const unsupportedNodeVersion = !semver.satisfies(process.version, `>=${nodeVersion}`);
-
-  if (unsupportedNodeVersion) {
-    console.log(
-      chalk.yellow(
-        `You are using Node ${process.version} so the project will be bootstrapped with an old unsupported version of tools.\n\n` +
-          `Please update to Node ${nodeVersion} or higher for a better, fully supported experience.\n`
-      )
-    );
-  }
-
   const root = path.resolve(name);
 
   log('Root ', root);
@@ -180,10 +168,107 @@ function createNodeServer(name, verbose, useNpm) {
           )
         );
       }
-      // Fall back to latest supported react-scripts for npm 3
-      version = 'react-scripts@0.9.x';
     }
   }
+
+  run(root, serverName, verbose, originalDirectory);
+}
+
+// To run on the give Directory
+function run(root, serverName, verbose, originalDirectory) {
+  // Here put all our dependencies
+  const allDependencies = ['dotenv'];
+
+  console.log('Installing packages. This might take a couple of minutes.');
+
+  // Here wants to put all the dependencies we need to install
+  console.log(`Installing ${chalk.cyan('dontenv')}...`);
+  console.log();
+
+  // Wait to understand
+  install(allDependencies, verbose).catch(reason => {
+    console.log();
+    console.log('Aborting installation.');
+    if (reason.command) {
+      console.log(`  ${chalk.cyan(reason.command)} has failed.`);
+    } else {
+      console.log(chalk.red('Unexpected error. Please report it as a bug:'));
+      console.log(reason);
+    }
+    console.log();
+
+    // On 'exit' we will delete these files from target directory.
+    const knownGeneratedFiles = ['package.json', 'yarn.lock', 'node_modules'];
+    const currentFiles = fs.readdirSync(path.join(root));
+
+    currentFiles.forEach(file => {
+      knownGeneratedFiles.forEach(fileToMatch => {
+        // This removes all knownGeneratedFiles.
+        if (file === fileToMatch) {
+          console.log(`Deleting generated file... ${chalk.cyan(file)}`);
+          fs.removeSync(path.join(root, file));
+        }
+      });
+    });
+
+    const remainingFiles = fs.readdirSync(path.join(root));
+    if (!remainingFiles.length) {
+      // Delete target folder if empty
+      console.log(`Deleting ${chalk.cyan(`${serverName}/`)} from ${chalk.cyan(path.resolve(root, '..'))}`);
+      process.chdir(path.resolve(root, '..'));
+      fs.removeSync(path.join(root));
+    }
+    console.log('Done.');
+    process.exit(1);
+  });
+}
+
+// install all dependencies
+function install(dependencies, verbose) {
+  return new Promise((resolve, reject) => {
+    let command;
+    let args;
+
+    // Now only we use npm later we'll migrate to yarn also
+    command = 'npm';
+    args = ['install', '--save', '--save-exact', '--loglevel', 'error'].concat(dependencies);
+
+    if (verbose) {
+      args.push('--verbose');
+    }
+
+    const child = spawn(command, args, { stdio: 'inherit' });
+
+    child.on('close', code => {
+      if (code !== 0) {
+        reject({
+          command: `${command} ${args.join(' ')}`
+        });
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+// Executed node script
+function executeNodeScript({ cwd, args }, data) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [...args, '-e', '--', JSON.stringify(data)], {
+      cwd,
+      stdio: 'inherit'
+    });
+
+    child.on('close', code => {
+      if (code !== 0) {
+        reject({
+          command: `node ${args.join(' ')}`
+        });
+        return;
+      }
+      resolve();
+    });
+  });
 }
 
 // Fetch latest version from npm dist-tag and validate with current version
@@ -356,6 +441,93 @@ function checkThatNpmCanReadCwd() {
     );
   }
   return false;
+}
+
+function checkNpmVersion() {
+  let hasMinNpm = false;
+  let npmVersion = null;
+  try {
+    npmVersion = execSync('npm --version').toString().trim();
+    hasMinNpm = semver.gte(npmVersion, '6.0.0');
+  } catch (err) {
+    // ignore
+  }
+  return {
+    hasMinNpm: hasMinNpm,
+    npmVersion: npmVersion
+  };
+}
+
+// Extract package name from tarball url or path.
+function getPackageInfo(installPackage) {
+  if (installPackage.match(/^.+\.(tgz|tar\.gz)$/)) {
+    return getTemporaryDirectory()
+      .then(obj => {
+        let stream;
+        if (/^http/.test(installPackage)) {
+          stream = hyperquest(installPackage);
+        } else {
+          stream = fs.createReadStream(installPackage);
+        }
+        return extractStream(stream, obj.tmpdir).then(() => obj);
+      })
+      .then(obj => {
+        const { name, version } = require(path.join(obj.tmpdir, 'package.json'));
+        obj.cleanup();
+        return { name, version };
+      })
+      .catch(err => {
+        // The package name could be with or without semver version, e.g. react-scripts-0.2.0-alpha.1.tgz
+        // However, this function returns package name only without semver version.
+        console.log(`Could not extract the package name from the archive: ${err.message}`);
+        const assumedProjectName = installPackage.match(/^.+\/(.+?)(?:-\d+.+)?\.(tgz|tar\.gz)$/)[1];
+        console.log(`Based on the filename, assuming it is "${chalk.cyan(assumedProjectName)}"`);
+        return Promise.resolve({ name: assumedProjectName });
+      });
+  } else if (installPackage.startsWith('git+')) {
+    // Pull package name out of git urls e.g:
+    // git+https://github.com/mycompany/react-scripts.git
+    // git+ssh://github.com/mycompany/react-scripts.git#v1.2.3
+    return Promise.resolve({
+      name: installPackage.match(/([^/]+)\.git(#.*)?$/)[1]
+    });
+  } else if (installPackage.match(/.+@/)) {
+    // Do not match @scope/ when stripping off @version or @tag
+    return Promise.resolve({
+      name: installPackage.charAt(0) + installPackage.substr(1).split('@')[0],
+      version: installPackage.split('@')[1]
+    });
+  } else if (installPackage.match(/^file:/)) {
+    const installPackagePath = installPackage.match(/^file:(.*)?$/)[1];
+    const { name, version } = require(path.join(installPackagePath, 'package.json'));
+    return Promise.resolve({ name, version });
+  }
+  return Promise.resolve({ name: installPackage });
+}
+
+// Create temporary directory
+function getTemporaryDirectory() {
+  return new Promise((resolve, reject) => {
+    // Unsafe cleanup lets us recursively delete the directory if it contains
+    // contents; by default it only allows removal if it's empty
+    tmp.dir({ unsafeCleanup: true }, (err, tmpdir, callback) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({
+          tmpdir: tmpdir,
+          cleanup: () => {
+            try {
+              callback();
+            } catch (ignored) {
+              // Callback might throw and fail, since it's a temp directory the
+              // OS will clean it up eventually...
+            }
+          }
+        });
+      }
+    });
+  });
 }
 
 module.exports = {
