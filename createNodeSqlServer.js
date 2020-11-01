@@ -182,10 +182,10 @@ function run(root, serverName, verbose, originalDirectory, template) {
     console.log('Installing packages. This might take a couple of minutes.');
 
     Promise.all([getPackageInfo(templateToInstall)])
-      .then(templateInfo => {
+      .then(([templateInfo]) => {
         allDependencies.push(templateToInstall);
 
-        console.log(`Template to install ${chalk.red(templateToInstall)} and templateInfo => ${templateInfo.name}`);
+        console.log('Template info ', JSON.stringify(templateInfo));
 
         console.log(
           `Installing ${chalk.cyan('dotenv')}, ${chalk.cyan('body-parser')}, with ${chalk.cyan(templateInfo.name)} ...`
@@ -197,13 +197,11 @@ function run(root, serverName, verbose, originalDirectory, template) {
       .then(async templateInfo => {
         const templateName = templateInfo.name;
 
-        await executeNodeScript(
-          {
-            cwd: process.cwd(),
-            args: []
-          },
-          [root, serverName, verbose, originalDirectory, templateName]
-        );
+        console.log('source path ', `${root}\\node_modules\\${templateName}`);
+
+        console.log('destination path ', root);
+
+        await moveFolder(root, templateName);
       })
       .catch(reason => {
         console.log();
@@ -585,21 +583,17 @@ function extractStream(stream, dest) {
 }
 
 // Execute node script
-function executeNodeScript({ cwd, args }, data, source) {
+function moveFolder(root, templateName) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [...args, '-e', source, '--', JSON.stringify(data)], {
-      cwd,
-      stdio: 'inherit'
-    });
-
-    child.on('close', code => {
-      if (code !== 0) {
-        reject({
-          command: `node ${args.join(' ')}`
-        });
-        return;
+    // To move a folder
+    fs.copySync(`${root}\\node_modules\\${templateName}`, root, function (err) {
+      if (err) {
+        console.error(err);
+        reject(new Error());
+      } else {
+        console.log('folder successfully  copied');
+        resolve();
       }
-      resolve();
     });
   });
 }
