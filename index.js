@@ -1,4 +1,7 @@
-const { init } = require("./createNodeSqlServer");
+#!/usr/bin/env node
 
+'use strict';
 
-init()
+const { init } = require('./createNodeSqlServer');
+
+init();

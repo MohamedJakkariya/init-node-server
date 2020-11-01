@@ -1,21 +1,19 @@
-/** @format */
+'use strict';
 
-const commander = require('commander');
+const https = require('https');
 const chalk = require('chalk');
 const envinfo = require('envinfo');
 const execSync = require('child_process').execSync;
-const semver = require('semver');
-const https = require('https');
-const path = require('path');
-const validateProjectName = require('validate-npm-package-name');
 const fs = require('fs-extra');
+const hyperquest = require('hyperquest');
 const os = require('os');
+const path = require('path');
+const semver = require('semver');
 const spawn = require('cross-spawn');
 const tmp = require('tmp');
-const hyperquest = require('hyperquest');
-const unpack = require('tar-pack').unpack;
-
+const commander = require('commander');
 const packageJson = require('./package.json');
+const validateProjectName = require('validate-npm-package-name');
 
 const log = console.log;
 
@@ -187,7 +185,7 @@ function run(root, serverName, verbose, originalDirectory, template) {
       .then(templateInfo => {
         allDependencies.push(templateToInstall);
 
-        console.log(`Template to install ${chalk.red(templateToInstall)} and templateInfo => ${templateInfo}`);
+        console.log(`Template to install ${chalk.red(templateToInstall)} and templateInfo => ${templateInfo.name}`);
 
         console.log(
           `Installing ${chalk.cyan('dotenv')}, ${chalk.cyan('body-parser')}, with ${chalk.cyan(templateInfo.name)} ...`
