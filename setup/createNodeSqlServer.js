@@ -128,9 +128,7 @@ function init() {
 function createNodeServer(name, verbose, useNpm, template) {
   const root = path.resolve(name);
 
-  log('Root ', root);
   const serverName = path.basename(root);
-  log('server ', serverName);
 
   checkServerName(serverName);
 
@@ -188,6 +186,8 @@ function run(root, serverName, verbose, originalDirectory, template) {
     Promise.all([getPackageInfo(templateToInstall)])
       .then(templateInfo => {
         allDependencies.push(templateToInstall);
+
+        console.log(`Template to install ${chalk.red(templateToInstall)} and templateInfo => ${templateInfo}`);
 
         console.log(
           `Installing ${chalk.cyan('dotenv')}, ${chalk.cyan('body-parser')}, with ${chalk.cyan(templateInfo.name)} ...`
