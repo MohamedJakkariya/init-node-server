@@ -28,6 +28,7 @@ function init() {
     .action(name => {
       projectName = name;
     })
+    .option('--template <path-to-template>', 'specify a template for the created project')
     .option('--verbose', 'print additional logs')
     .option('--scripts-version <alternative-package>', 'use a non-standard version of init-node-server')
     .option('--info', 'print environment debug info')
@@ -117,12 +118,12 @@ function init() {
         console.log();
         process.exit(1);
       } else {
-        createNodeServer(projectName, program.verbose, program.useNpm);
+        createNodeServer(projectName, program.verbose, program.useNpm, program.template);
       }
     });
 }
 
-function createNodeServer(name, verbose, useNpm) {
+function createNodeServer(name, verbose, useNpm, template) {
   const root = path.resolve(name);
 
   log('Root ', root);
@@ -171,55 +172,113 @@ function createNodeServer(name, verbose, useNpm) {
     }
   }
 
-  run(root, serverName, verbose, originalDirectory);
+  run(root, serverName, verbose, originalDirectory, template);
 }
 
 // To run on the give Directory
-function run(root, serverName, verbose, originalDirectory) {
+function run(root, serverName, verbose, originalDirectory, template) {
   // Here put all our dependencies
   const allDependencies = ['dotenv', 'body-parser'];
+  Promise.all([getTemplateInstallPackage(template, originalDirectory)]).then(([templateToInstall]) => {
+    console.log('Installing packages. This might take a couple of minutes.');
 
-  console.log('Installing packages. This might take a couple of minutes.');
+    Promise.all([getPackageInfo(templateToInstall)])
+      .then(templateInfo => {
+        const templatesVersionMinimum = '3.3.0';
 
-  // Here wants to put all the dependencies we need to install
-  console.log(`Installing ${chalk.cyan('dontenv')}...`);
-  console.log();
-
-  // Wait to understand
-  install(allDependencies, verbose).catch(reason => {
-    console.log();
-    console.log('Aborting installation.');
-    if (reason.command) {
-      console.log(`  ${chalk.cyan(reason.command)} has failed.`);
-    } else {
-      console.log(chalk.red('Unexpected error. Please report it as a bug:'));
-      console.log(reason);
-    }
-    console.log();
-
-    // On 'exit' we will delete these files from target directory.
-    const knownGeneratedFiles = ['package.json', 'yarn.lock', 'node_modules'];
-    const currentFiles = fs.readdirSync(path.join(root));
-
-    currentFiles.forEach(file => {
-      knownGeneratedFiles.forEach(fileToMatch => {
-        // This removes all knownGeneratedFiles.
-        if (file === fileToMatch) {
-          console.log(`Deleting generated file... ${chalk.cyan(file)}`);
-          fs.removeSync(path.join(root, file));
+        // Only support templates when used alongside new react-scripts versions.
+        const supportsTemplates = semver.gte(packageVersion, templatesVersionMinimum);
+        if (supportsTemplates) {
+          allDependencies.push(templateToInstall);
+        } else if (template) {
+          console.log('');
+          console.log(
+            `The ${chalk.cyan(packageInfo.name)} version you're using ${
+              packageInfo.name === 'react-scripts' ? 'is not' : 'may not be'
+            } compatible with the ${chalk.cyan('--template')} option.`
+          );
+          console.log('');
         }
-      });
-    });
 
-    const remainingFiles = fs.readdirSync(path.join(root));
-    if (!remainingFiles.length) {
-      // Delete target folder if empty
-      console.log(`Deleting ${chalk.cyan(`${serverName}/`)} from ${chalk.cyan(path.resolve(root, '..'))}`);
-      process.chdir(path.resolve(root, '..'));
-      fs.removeSync(path.join(root));
-    }
-    console.log('Done.');
-    process.exit(1);
+        console.log(
+          `Installing ${chalk.cyan('react')}, ${chalk.cyan('react-dom')}, and ${chalk.cyan(packageInfo.name)}${
+            supportsTemplates ? ` with ${chalk.cyan(templateInfo.name)}` : ''
+          }...`
+        );
+        console.log();
+
+        return install(root, useYarn, usePnp, allDependencies, verbose, isOnline).then(() => ({
+          packageInfo,
+          supportsTemplates,
+          templateInfo
+        }));
+      })
+      .then(async ({ packageInfo, supportsTemplates, templateInfo }) => {
+        const packageName = packageInfo.name;
+        const templateName = supportsTemplates ? templateInfo.name : undefined;
+        checkNodeVersion(packageName);
+        setCaretRangeForRuntimeDeps(packageName);
+
+        const pnpPath = path.resolve(process.cwd(), '.pnp.js');
+
+        const nodeArgs = fs.existsSync(pnpPath) ? ['--require', pnpPath] : [];
+
+        await executeNodeScript(
+          {
+            cwd: process.cwd(),
+            args: nodeArgs
+          },
+          [root, appName, verbose, originalDirectory, templateName],
+          `
+      var init = require('${packageName}/scripts/init.js');
+      init.apply(null, JSON.parse(process.argv[1]));
+    `
+        );
+
+        if (version === 'react-scripts@0.9.x') {
+          console.log(
+            chalk.yellow(
+              `\nNote: the project was bootstrapped with an old unsupported version of tools.\n` +
+                `Please update to Node >=10 and npm >=6 to get supported tools in new projects.\n`
+            )
+          );
+        }
+      })
+      .catch(reason => {
+        console.log();
+        console.log('Aborting installation.');
+        if (reason.command) {
+          console.log(`  ${chalk.cyan(reason.command)} has failed.`);
+        } else {
+          console.log(chalk.red('Unexpected error. Please report it as a bug:'));
+          console.log(reason);
+        }
+        console.log();
+
+        // On 'exit' we will delete these files from target directory.
+        const knownGeneratedFiles = ['package.json', 'yarn.lock', 'node_modules'];
+        const currentFiles = fs.readdirSync(path.join(root));
+
+        currentFiles.forEach(file => {
+          knownGeneratedFiles.forEach(fileToMatch => {
+            // This removes all knownGeneratedFiles.
+            if (file === fileToMatch) {
+              console.log(`Deleting generated file... ${chalk.cyan(file)}`);
+              fs.removeSync(path.join(root, file));
+            }
+          });
+        });
+
+        const remainingFiles = fs.readdirSync(path.join(root));
+        if (!remainingFiles.length) {
+          // Delete target folder if empty
+          console.log(`Deleting ${chalk.cyan(`${serverName}/`)} from ${chalk.cyan(path.resolve(root, '..'))}`);
+          process.chdir(path.resolve(root, '..'));
+          fs.removeSync(path.join(root));
+        }
+        console.log('Done.');
+        process.exit(1);
+      });
   });
 }
 
