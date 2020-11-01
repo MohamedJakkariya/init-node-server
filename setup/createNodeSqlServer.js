@@ -12,6 +12,8 @@ const fs = require('fs-extra');
 const os = require('os');
 const spawn = require('cross-spawn');
 const tmp = require('tmp');
+const hyperquest = require('hyperquest');
+const unpack = require('tar-pack').unpack;
 
 const packageJson = require('./package.json');
 
@@ -179,70 +181,31 @@ function createNodeServer(name, verbose, useNpm, template) {
 function run(root, serverName, verbose, originalDirectory, template) {
   // Here put all our dependencies
   const allDependencies = ['dotenv', 'body-parser'];
+
   Promise.all([getTemplateInstallPackage(template, originalDirectory)]).then(([templateToInstall]) => {
     console.log('Installing packages. This might take a couple of minutes.');
 
     Promise.all([getPackageInfo(templateToInstall)])
       .then(templateInfo => {
-        const templatesVersionMinimum = '3.3.0';
-
-        // Only support templates when used alongside new react-scripts versions.
-        const supportsTemplates = semver.gte(packageVersion, templatesVersionMinimum);
-        if (supportsTemplates) {
-          allDependencies.push(templateToInstall);
-        } else if (template) {
-          console.log('');
-          console.log(
-            `The ${chalk.cyan(packageInfo.name)} version you're using ${
-              packageInfo.name === 'react-scripts' ? 'is not' : 'may not be'
-            } compatible with the ${chalk.cyan('--template')} option.`
-          );
-          console.log('');
-        }
+        allDependencies.push(templateToInstall);
 
         console.log(
-          `Installing ${chalk.cyan('react')}, ${chalk.cyan('react-dom')}, and ${chalk.cyan(packageInfo.name)}${
-            supportsTemplates ? ` with ${chalk.cyan(templateInfo.name)}` : ''
-          }...`
+          `Installing ${chalk.cyan('dotenv')}, ${chalk.cyan('body-parser')}, with ${chalk.cyan(templateInfo.name)} ...`
         );
         console.log();
 
-        return install(root, useYarn, usePnp, allDependencies, verbose, isOnline).then(() => ({
-          packageInfo,
-          supportsTemplates,
-          templateInfo
-        }));
+        return install(root, allDependencies, verbose).then(() => templateInfo);
       })
-      .then(async ({ packageInfo, supportsTemplates, templateInfo }) => {
-        const packageName = packageInfo.name;
-        const templateName = supportsTemplates ? templateInfo.name : undefined;
-        checkNodeVersion(packageName);
-        setCaretRangeForRuntimeDeps(packageName);
-
-        const pnpPath = path.resolve(process.cwd(), '.pnp.js');
-
-        const nodeArgs = fs.existsSync(pnpPath) ? ['--require', pnpPath] : [];
+      .then(async templateInfo => {
+        const templateName = templateInfo.name;
 
         await executeNodeScript(
           {
             cwd: process.cwd(),
-            args: nodeArgs
+            args: []
           },
-          [root, appName, verbose, originalDirectory, templateName],
-          `
-      var init = require('${packageName}/scripts/init.js');
-      init.apply(null, JSON.parse(process.argv[1]));
-    `
+          [root, serverName, verbose, originalDirectory, templateName]
         );
-
-        if (version === 'react-scripts@0.9.x') {
-          console.log(
-            chalk.yellow(
-              `\nNote: the project was bootstrapped with an old unsupported version of tools.\n` +
-                `Please update to Node >=10 and npm >=6 to get supported tools in new projects.\n`
-            )
-          );
-        }
       })
       .catch(reason => {
         console.log();
@@ -283,7 +246,7 @@ function run(root, serverName, verbose, originalDirectory, template) {
 }
 
 // install all dependencies
-function install(dependencies, verbose) {
+function install(root, dependencies, verbose) {
   return new Promise((resolve, reject) => {
     let command;
     let args;
@@ -517,7 +480,7 @@ function getPackageInfo(installPackage) {
         return { name, version };
       })
       .catch(err => {
-        // The package name could be with or without semver version, e.g. react-scripts-0.2.0-alpha.1.tgz
+        // The package name could be with or without semver version, e.g. init-nose-server-0.2.0-alpha.1.tgz
         // However, this function returns package name only without semver version.
         console.log(`Could not extract the package name from the archive: ${err.message}`);
         const assumedProjectName = installPackage.match(/^.+\/(.+?)(?:-\d+.+)?\.(tgz|tar\.gz)$/)[1];
@@ -526,8 +489,8 @@ function getPackageInfo(installPackage) {
       });
   } else if (installPackage.startsWith('git+')) {
     // Pull package name out of git urls e.g:
-    // git+https://github.com/mycompany/react-scripts.git
-    // git+ssh://github.com/mycompany/react-scripts.git#v1.2.3
+    // git+https://github.com/MohamedJakkariya/ins-template.git
+    // git+ssh://github.com/mycompany/ins-template.git#v1.2.3
     return Promise.resolve({
       name: installPackage.match(/([^/]+)\.git(#.*)?$/)[1]
     });
@@ -543,6 +506,45 @@ function getPackageInfo(installPackage) {
     return Promise.resolve({ name, version });
   }
   return Promise.resolve({ name: installPackage });
+}
+
+// Get template install package
+function getTemplateInstallPackage(template, originalDirectory) {
+  let templateToInstall = 'ins-template';
+  if (template) {
+    if (template.match(/^file:/)) {
+      templateToInstall = `file:${path.resolve(originalDirectory, template.match(/^file:(.*)?$/)[1])}`;
+    } else if (template.includes('://') || template.match(/^.+\.(tgz|tar\.gz)$/)) {
+      // for tar.gz or alternative paths
+      templateToInstall = template;
+    } else {
+      // Add prefix 'ins-template-' to non-prefixed templates, leaving any
+      // @scope/ and @version intact.
+      const packageMatch = template.match(/^(@[^/]+\/)?([^@]+)?(@.+)?$/);
+      const scope = packageMatch[1] || '';
+      const templateName = packageMatch[2] || '';
+      const version = packageMatch[3] || '';
+
+      if (templateName === templateToInstall || templateName.startsWith(`${templateToInstall}-`)) {
+        // Covers:
+        // - ins-template
+        // - @SCOPE/ins-template
+        // - ins-template-NAME
+        // - @SCOPE/ins-template-NAME
+        templateToInstall = `${scope}${templateName}${version}`;
+      } else if (version && !scope && !templateName) {
+        // Covers using @SCOPE only
+        templateToInstall = `${version}/${templateToInstall}`;
+      } else {
+        // Covers templates without the `ins-template` prefix:
+        // - NAME
+        // - @SCOPE/NAME
+        templateToInstall = `${scope}${templateToInstall}-${templateName}${version}`;
+      }
+    }
+  }
+
+  return Promise.resolve(templateToInstall);
 }
 
 // Create temporary directory
@@ -570,6 +572,41 @@ function getTemporaryDirectory() {
   });
 }
 
+function extractStream(stream, dest) {
+  return new Promise((resolve, reject) => {
+    stream.pipe(
+      unpack(dest, err => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(dest);
+        }
+      })
+    );
+  });
+}
+
+// Execute node script
+function executeNodeScript({ cwd, args }, data, source) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [...args, '-e', source, '--', JSON.stringify(data)], {
+      cwd,
+      stdio: 'inherit'
+    });
+
+    child.on('close', code => {
+      if (code !== 0) {
+        reject({
+          command: `node ${args.join(' ')}`
+        });
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
 module.exports = {
-  init
+  init,
+  getTemplateInstallPackage
 };
