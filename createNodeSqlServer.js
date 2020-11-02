@@ -200,7 +200,7 @@ function run(root, serverName, verbose, originalDirectory, template) {
         // console.log('destination path ', root);
 
         // To move a folder
-        fs.copySync(`${root}\\node_modules\\${templateName}\\template`, root, function (err) {
+        fs.moveSync(`${root}\\node_modules\\${templateName}\\template`, root, function (err) {
           if (err) {
             console.error(err);
             return new Error(err);

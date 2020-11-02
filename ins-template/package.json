@@ -1,0 +1,14 @@
+{
+  "name": "ins-template",
+  "version": "1.0.1",
+  "description": "This is the base template of init-node-server also one kind of CRA-template",
+  "keywords": [
+    "ins-template",
+    "init-node-server",
+    "node",
+    "sql",
+    "template"
+  ],
+  "author": "Mohamed Jakkariya",
+  "license": "MIT"
+}
