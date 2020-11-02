@@ -145,7 +145,12 @@ function createNodeServer(name, verbose, useNpm, template) {
   const packageJson = {
     name: serverName,
     version: '0.1.0',
-    private: true
+    main: 'server.js',
+    description: 'This server is initiated by init-node-server npm package',
+    scripts: {
+      start: 'node ./config/www',
+      devstart: 'nodemon ./config/www'
+    }
   };
 
   fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify(packageJson, null, 2) + os.EOL);
@@ -180,7 +185,7 @@ function run(root, serverName, verbose, originalDirectory, template) {
   /**
    * Here put all our dependencies one by one
    */
-  const allDependencies = ['express', 'body-parser', 'mysql', 'debug', 'js-logger', 'morgan', 'nodemon'];
+  const allDependencies = ['express', 'body-parser', 'mysql', 'debug', 'js-logger', 'morgan', 'nodemon', 'dotenv'];
 
   Promise.all([getTemplateInstallPackage(template, originalDirectory)]).then(([templateToInstall]) => {
     log('Installing packages. This might take a couple of minutes.');
@@ -190,7 +195,7 @@ function run(root, serverName, verbose, originalDirectory, template) {
         allDependencies.push(templateToInstall);
 
         log(
-          `Installing ${chalk.cyan(allDependencies.slice(0, -1).join(','))} with ${chalk.cyan(templateInfo.name)} ...`
+          `Installing ${chalk.cyan(allDependencies.slice(0, -1).join(', '))} with ${chalk.cyan(templateInfo.name)} ...`
         );
         log();
 
