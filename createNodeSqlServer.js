@@ -185,23 +185,30 @@ function run(root, serverName, verbose, originalDirectory, template) {
       .then(([templateInfo]) => {
         allDependencies.push(templateToInstall);
 
-        console.log('Template info ', JSON.stringify(templateInfo));
-
         console.log(
           `Installing ${chalk.cyan('dotenv')}, ${chalk.cyan('body-parser')}, with ${chalk.cyan(templateInfo.name)} ...`
         );
         console.log();
 
-        return install(root, allDependencies, verbose).then(() => templateInfo);
+        return install(allDependencies, verbose).then(() => templateInfo);
       })
       .then(async templateInfo => {
         const templateName = templateInfo.name;
 
-        console.log('source path ', `${root}\\node_modules\\${templateName}`);
+        // console.log('source path ', `${root}\\node_modules\\${templateName}`);
 
-        console.log('destination path ', root);
+        // console.log('destination path ', root);
 
-        await moveFolder(root, templateName);
+        // To move a folder
+        fs.copySync(`${root}\\node_modules\\${templateName}\\template`, root, function (err) {
+          if (err) {
+            console.error(err);
+            return new Error(err);
+          } else {
+            console.log('folder successfully  copied');
+            return;
+          }
+        });
       })
       .catch(reason => {
         console.log();
@@ -242,7 +249,7 @@ function run(root, serverName, verbose, originalDirectory, template) {
 }
 
 // install all dependencies
-function install(root, dependencies, verbose) {
+function install(dependencies, verbose) {
   return new Promise((resolve, reject) => {
     let command;
     let args;
@@ -579,22 +586,6 @@ function extractStream(stream, dest) {
         }
       })
     );
-  });
-}
-
-// Execute node script
-function moveFolder(root, templateName) {
-  return new Promise((resolve, reject) => {
-    // To move a folder
-    fs.copySync(`${root}\\node_modules\\${templateName}`, root, function (err) {
-      if (err) {
-        console.error(err);
-        reject(new Error());
-      } else {
-        console.log('folder successfully  copied');
-        resolve();
-      }
-    });
   });
 }
 
