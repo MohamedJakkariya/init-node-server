@@ -4,7 +4,7 @@
     "init-node-server": "index.js"
   },
   "preferGlobal": true,
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "To make simple node sql exress server with single line",
   "main": "index.js",
   "author": "Mohamed Jakkariya",
@@ -26,5 +26,8 @@
     "node",
     "sql",
     "ins-template"
-  ]
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
 }
