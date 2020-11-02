@@ -15,7 +15,9 @@ const commander = require('commander');
 const packageJson = require('./package.json');
 const validateProjectName = require('validate-npm-package-name');
 
+// Simplify the log statement
 const log = console.log;
+const error = console.error;
 
 let projectName;
 
@@ -50,9 +52,9 @@ function init() {
 
   //   Check if the flax is info
   if (program.info) {
-    console.log(chalk.bold('\nEnvironment Info:'));
-    console.log(`\n  current version of ${packageJson.name}: ${packageJson.version}`);
-    console.log(`  running from ${__dirname}`);
+    log(chalk.bold('\nEnvironment Info:'));
+    log(`\n  current version of ${packageJson.name}: ${packageJson.version}`);
+    log(`  running from ${__dirname}`);
     return envinfo
       .run(
         {
@@ -67,18 +69,18 @@ function init() {
           showNotFound: true
         }
       )
-      .then(console.log);
+      .then(log);
   }
 
   //   Check project directory name
   if (typeof projectName === 'undefined') {
-    console.error('Please specify the project directory:');
-    console.log(`  ${chalk.cyan(program.name())} ${chalk.green('<project-directory>')}`);
-    console.log();
-    console.log('For example:');
-    console.log(`  ${chalk.cyan(program.name())} ${chalk.green('my-node-app')}`);
-    console.log();
-    console.log(`Run ${chalk.cyan(`${program.name()} --help`)} to see all options.`);
+    error('Please specify the project directory:');
+    log(`  ${chalk.cyan(program.name())} ${chalk.green('<project-directory>')}`);
+    log();
+    log('For example:');
+    log(`  ${chalk.cyan(program.name())} ${chalk.green('my-node-app')}`);
+    log();
+    log(`Run ${chalk.cyan(`${program.name()} --help`)} to see all options.`);
     process.exit(1);
   }
 
@@ -98,24 +100,24 @@ function init() {
     })
     .then(latest => {
       if (latest && semver.lt(packageJson.version, latest)) {
-        console.log();
-        console.error(
+        log();
+        error(
           chalk.yellow(
             `You are running \`init-node-server\` ${packageJson.version}, which is behind the latest release (${latest}).\n\n` +
               'We no longer support global installation of init-node-server.'
           )
         );
-        console.log();
-        console.log(
+        log();
+        log(
           'Please remove any global installs with one of the following commands:\n' +
             '- npm uninstall -g init-node-server\n'
         );
-        console.log();
-        console.log(
+        log();
+        log(
           'The latest instructions for creating a new app can be found here:\n' +
             'https://init-node-server.dev/docs/getting-started/'
         );
-        console.log();
+        log();
         process.exit(1);
       } else {
         createNodeServer(projectName, program.verbose, program.useNpm, program.template);
@@ -135,10 +137,10 @@ function createNodeServer(name, verbose, useNpm, template) {
   if (!isSafeToCreateProjectIn(root, name)) {
     process.exit(1);
   }
-  console.log();
+  log();
 
-  console.log(`Creating a new node-sql server in ${chalk.green(root)}.`);
-  console.log();
+  log(`Creating a new node-sql server in ${chalk.green(root)}.`);
+  log();
 
   const packageJson = {
     name: serverName,
@@ -160,7 +162,7 @@ function createNodeServer(name, verbose, useNpm, template) {
     const npmInfo = checkNpmVersion();
     if (!npmInfo.hasMinNpm) {
       if (npmInfo.npmVersion) {
-        console.log(
+        log(
           chalk.yellow(
             `You are using npm ${npmInfo.npmVersion} so the project will be bootstrapped with an old unsupported version of tools.\n\n` +
               `Please update to npm 6 or higher for a better, fully supported experience.\n`
@@ -175,51 +177,49 @@ function createNodeServer(name, verbose, useNpm, template) {
 
 // To run on the give Directory
 function run(root, serverName, verbose, originalDirectory, template) {
-  // Here put all our dependencies
-  const allDependencies = ['dotenv', 'body-parser'];
+  /**
+   * Here put all our dependencies one by one
+   */
+  const allDependencies = ['express', 'body-parser', 'mysql', 'debug', 'js-logger', 'morgan', 'nodemon'];
 
   Promise.all([getTemplateInstallPackage(template, originalDirectory)]).then(([templateToInstall]) => {
-    console.log('Installing packages. This might take a couple of minutes.');
+    log('Installing packages. This might take a couple of minutes.');
 
     Promise.all([getPackageInfo(templateToInstall)])
       .then(([templateInfo]) => {
         allDependencies.push(templateToInstall);
 
-        console.log(
-          `Installing ${chalk.cyan('dotenv')}, ${chalk.cyan('body-parser')}, with ${chalk.cyan(templateInfo.name)} ...`
+        log(
+          `Installing ${chalk.cyan(allDependencies.slice(0, -1).join(','))} with ${chalk.cyan(templateInfo.name)} ...`
         );
-        console.log();
+        log();
 
         return install(allDependencies, verbose).then(() => templateInfo);
       })
       .then(async templateInfo => {
         const templateName = templateInfo.name;
 
-        // console.log('source path ', `${root}\\node_modules\\${templateName}`);
-
-        // console.log('destination path ', root);
-
         // To move a folder
         fs.copySync(`${root}\\node_modules\\${templateName}\\template`, root, function (err) {
           if (err) {
-            console.error(err);
+            error(err);
             return new Error(err);
           } else {
-            console.log('folder successfully  copied');
+            log('folder successfully  copied');
             return;
           }
         });
       })
       .catch(reason => {
-        console.log();
-        console.log('Aborting installation.');
+        log();
+        log('Aborting installation.');
         if (reason.command) {
-          console.log(`  ${chalk.cyan(reason.command)} has failed.`);
+          log(`  ${chalk.cyan(reason.command)} has failed.`);
         } else {
-          console.log(chalk.red('Unexpected error. Please report it as a bug:'));
-          console.log(reason);
+          log(chalk.red('Unexpected error. Please report it as a bug:'));
+          log(reason);
         }
-        console.log();
+        log();
 
         // On 'exit' we will delete these files from target directory.
         const knownGeneratedFiles = ['package.json', 'yarn.lock', 'node_modules'];
@@ -229,7 +229,7 @@ function run(root, serverName, verbose, originalDirectory, template) {
           knownGeneratedFiles.forEach(fileToMatch => {
             // This removes all knownGeneratedFiles.
             if (file === fileToMatch) {
-              console.log(`Deleting generated file... ${chalk.cyan(file)}`);
+              log(`Deleting generated file... ${chalk.cyan(file)}`);
               fs.removeSync(path.join(root, file));
             }
           });
@@ -238,11 +238,11 @@ function run(root, serverName, verbose, originalDirectory, template) {
         const remainingFiles = fs.readdirSync(path.join(root));
         if (!remainingFiles.length) {
           // Delete target folder if empty
-          console.log(`Deleting ${chalk.cyan(`${serverName}/`)} from ${chalk.cyan(path.resolve(root, '..'))}`);
+          log(`Deleting ${chalk.cyan(`${serverName}/`)} from ${chalk.cyan(path.resolve(root, '..'))}`);
           process.chdir(path.resolve(root, '..'));
           fs.removeSync(path.join(root));
         }
-        console.log('Done.');
+        log('Done.');
         process.exit(1);
       });
   });
@@ -301,13 +301,13 @@ function checkForLatestVersion() {
 function checkServerName(serverName) {
   const validationResult = validateProjectName(serverName);
   if (!validationResult.validForNewPackages) {
-    console.error(
+    error(
       chalk.red(`Cannot create a project named ${chalk.green(`"${serverName}"`)} because of npm naming restrictions:\n`)
     );
     [...(validationResult.errors || []), ...(validationResult.warnings || [])].forEach(error => {
-      console.error(chalk.red(`  * ${error}`));
+      error(chalk.red(`  * ${error}`));
     });
-    console.error(chalk.red('\nPlease choose a different project name.'));
+    error(chalk.red('\nPlease choose a different project name.'));
     process.exit(1);
   }
 
@@ -315,7 +315,7 @@ function checkServerName(serverName) {
   const dependencies = ['debug', 'dotenv', 'express', 'mysql', 'prettier', 'morgan'].sort();
 
   if (dependencies.includes(serverName)) {
-    console.error(
+    error(
       chalk.red(
         `Cannot create a project named ${chalk.green(
           `"${serverName}"`
@@ -364,22 +364,22 @@ function isSafeToCreateProjectIn(root, name) {
     .filter(file => !isErrorLog(file));
 
   if (conflicts.length > 0) {
-    console.log(`The directory ${chalk.green(name)} contains files that could conflict:`);
-    console.log();
+    log(`The directory ${chalk.green(name)} contains files that could conflict:`);
+    log();
     for (const file of conflicts) {
       try {
         const stats = fs.lstatSync(path.join(root, file));
         if (stats.isDirectory()) {
-          console.log(`  ${chalk.blue(`${file}/`)}`);
+          log(`  ${chalk.blue(`${file}/`)}`);
         } else {
-          console.log(`  ${file}`);
+          log(`  ${file}`);
         }
       } catch (e) {
-        console.log(`  ${file}`);
+        log(`  ${file}`);
       }
     }
-    console.log();
-    console.log('Either try using a new directory name, or remove the files listed above.');
+    log();
+    log('Either try using a new directory name, or remove the files listed above.');
 
     return false;
   }
@@ -427,7 +427,7 @@ function checkThatNpmCanReadCwd() {
   if (npmCWD === cwd) {
     return true;
   }
-  console.error(
+  error(
     chalk.red(
       `Could not start an npm process in the right directory.\n\n` +
         `The current directory is: ${chalk.bold(cwd)}\n` +
@@ -436,7 +436,7 @@ function checkThatNpmCanReadCwd() {
     )
   );
   if (process.platform === 'win32') {
-    console.error(
+    error(
       chalk.red(`On Windows, this can usually be fixed by running:\n\n`) +
         `  ${chalk.cyan('reg')} delete "HKCU\\Software\\Microsoft\\Command Processor" /v AutoRun /f\n` +
         `  ${chalk.cyan('reg')} delete "HKLM\\Software\\Microsoft\\Command Processor" /v AutoRun /f\n\n` +
@@ -485,9 +485,9 @@ function getPackageInfo(installPackage) {
       .catch(err => {
         // The package name could be with or without semver version, e.g. init-nose-server-0.2.0-alpha.1.tgz
         // However, this function returns package name only without semver version.
-        console.log(`Could not extract the package name from the archive: ${err.message}`);
+        log(`Could not extract the package name from the archive: ${err.message}`);
         const assumedProjectName = installPackage.match(/^.+\/(.+?)(?:-\d+.+)?\.(tgz|tar\.gz)$/)[1];
-        console.log(`Based on the filename, assuming it is "${chalk.cyan(assumedProjectName)}"`);
+        log(`Based on the filename, assuming it is "${chalk.cyan(assumedProjectName)}"`);
         return Promise.resolve({ name: assumedProjectName });
       });
   } else if (installPackage.startsWith('git+')) {
