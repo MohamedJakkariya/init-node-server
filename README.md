@@ -38,3 +38,7 @@ DB_NAME='<YOUR_DATABASE_NAME>';
 ```npm
 npm run devstart
 ```
+
+Hurray 🎉🎊🎉
+
+Happy Coding! 😊
