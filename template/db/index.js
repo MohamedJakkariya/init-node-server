@@ -1,20 +1,22 @@
 /**
+ * @format
  * @params : Options
  * @type :   Object
  * @desc :   Get all data from the given tables
  * @return : Promise
  */
 
-exports.getAllData = async options => {
+const Logger = require('js-logger');
+
+const { connection } = global;
+
+exports.getAll = async options => {
   return new Promise((resolve, reject) => {
-    connection.query(`SELECT ${options.projection} FROM ${options.table_names}`, function (error, results, fields) {
-      if (error) {
-        return reject({
-          sql: error.sql,
-          msg: error.sqlMessage
-        });
+    connection.query(`SELECT ${options.projection} FROM ${options.table_names}`, (err, results) => {
+      if (err) {
+        return reject(new Error(err.sqlMessage));
       }
-      resolve(results);
+      return resolve(results);
     });
   });
 };
@@ -26,20 +28,14 @@ exports.getAllData = async options => {
  * @desc :   Get all data from the given tables
  * @return : Promise
  */
-exports.getData = options => {
+exports.getOne = options => {
   return new Promise((resolve, reject) => {
     connection.query(
-      `SELECT ${options.projection} FROM ${options.table_name} WHERE ${options.condition} = ?`,
+      `SELECT ${options.projection} FROM ${options.table_name} WHERE ${options.condition}`,
       options.value,
-      function (error, result, fields) {
-        if (error) {
-          return reject({
-            sql: error.sql,
-            msg: error.sqlMessage
-          });
-        }
-        // console.log(result);
-        resolve(result);
+      (err, result) => {
+        if (err) return reject(new Error(err.sqlMessage));
+        return resolve(result);
       }
     );
   });
@@ -54,15 +50,11 @@ exports.getData = options => {
  */
 exports.insertOne = options => {
   return new Promise((resolve, reject) => {
-    connection.query(`INSERT INTO ${options.table_name} SET ?`, options.data, function (err, results, fields) {
-      if (err) {
-        return reject({
-          sql: error.sql,
-          msg: error.sqlMessage
-        });
-      }
-      console.log('Inserted successfully!');
-      resolve(results);
+    connection.query(`INSERT INTO ${options.table_name} SET ?`, options.data, (err, results) => {
+      if (err) return reject(new Error(err.sqlMessage));
+
+      Logger.log(`Inserted id ${results.insertId}!`);
+      return resolve(results);
     });
   });
 };
@@ -76,21 +68,13 @@ exports.insertOne = options => {
  */
 exports.deleteOne = options => {
   return new Promise((resolve, reject) => {
-    connection.query(
-      `DELETE FROM ${options.table_name} WHERE ${options.condition}`,
-      options.value,
-      (err, result, fields) => {
-        console.log(err);
-        if (err) {
-          return reject({
-            sql: error.sql,
-            msg: error.sqlMessage
-          });
-        }
-        console.log('Deleted successfully!');
-        resolve(result);
-      }
-    );
+    connection.query(`DELETE FROM ${options.table_name} WHERE ${options.condition}`, options.value, (err, result) => {
+      Logger.error(err);
+      if (err) return reject(new Error(err.sqlMessage));
+
+      Logger.log('Deleted successfully!');
+      return resolve(result);
+    });
   });
 };
 
@@ -101,20 +85,16 @@ exports.deleteOne = options => {
  * @desc :   Get all data from the given tables
  * @return : Promise
  */
-exports.getDataFromMultipleTable = options => {
+exports.getMulti = options => {
   return new Promise((resolve, reject) => {
     connection.query(
       `select ${options.projection}  from ${options.table_names} where ${options.conditions} 
     `,
       options.value,
-      (err, results, fields) => {
-        if (err) {
-          return reject({
-            sql: error.sql,
-            msg: error.sqlMessage
-          });
-        }
-        resolve(results);
+      (err, results) => {
+        if (err) return reject(new Error(err.sqlMessage));
+
+        return resolve(results);
       }
     );
   });
@@ -129,20 +109,14 @@ exports.getDataFromMultipleTable = options => {
  */
 exports.updateOne = options => {
   return new Promise((resolve, reject) => {
-    // console.log(options);
-
     connection.query(
       `UPDATE ${options.table_name} SET ${options.updating_fields} WHERE ${options.key} = ?`,
       [...options.updating_values, options.value],
-      (err, results, fields) => {
-        if (err) {
-          return reject({
-            sql: error.sql,
-            msg: error.sqlMessage
-          });
-        }
-        console.log('Updated successfully ...');
-        resolve(results);
+      (err, results) => {
+        if (err) return reject(new Error(err.sqlMessage));
+
+        Logger.log('Updated successfully ...');
+        return resolve(results);
       }
     );
   });
@@ -157,49 +131,11 @@ exports.updateOne = options => {
  */
 exports.foreignKeyMode = mode => {
   return new Promise((resolve, reject) => {
-    // console.log(options);
+    connection.query(`SET FOREIGN_KEY_CHECKS = ?`, mode, err => {
+      if (err) return reject(new Error(err.sqlMessage));
 
-    connection.query(`SET FOREIGN_KEY_CHECKS = ?`, mode, (err, results, fields) => {
-      if (err) {
-        return reject({
-          sql: error.sql,
-          msg: error.sqlMessage
-        });
-      }
-      console.log(mode === 0 ? 'Foreign key Disabled' : 'Foreign key Enabled');
-      resolve(true);
+      Logger.info(mode === 0 ? 'Foreign key Disabled' : 'Foreign key Enabled');
+      return resolve(true);
     });
   });
-};
-
-// Options sanitization
-const optionSanitization = async options => {
-  const values = Object.values(options);
-  console.log(values);
-
-  const filter_value = values.map((v, i) => {
-    if (v === null || v === undefined || v === '') {
-      return {
-        v,
-        i
-      };
-    }
-  });
-
-  console.log(filter_value);
-
-  if (filter_value.length > 0) {
-    filter_value.forEach(value => {
-      return {
-        result: false,
-        field: options[value.i],
-        msg: `Should not be ${filter_value[value.v]}`
-      };
-    });
-  } else {
-    return {
-      result: true,
-      msg: 'Proper input given.'
-    };
-  }
 };
