@@ -38,8 +38,5 @@
     "node",
     "sql",
     "ins-template"
-  ],
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  }
+  ]
 }
