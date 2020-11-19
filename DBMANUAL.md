@@ -208,8 +208,56 @@ router.get('/test', async (req, res) => {
     const result = await foreignKeyMode(connection, 0);     // 0 or 1
 ```
 
-## Customer Error Handling
+## Custome Error Handling
+
+    Here you can use structural and clear error handling techniques to make your code more modular.
+
+    In simply you need to throw instance of customer error handler class and the inside the catch block you can figure out what's the instance of error so depends on instance we can throw proper errors.
+
+### Example of adding error handler :
+
+```js
+  try {
+    // input validation checking example
+    if(!user) throw new BadRequest('Missing fields');
+
+    // throw not found example 
+    if(user.length === 0) throw new NotFound("User doesn't exist");
+
+    } catch (err) {
+    /** Customize error handling example */
+
+    // 400
+    if (err instanceof BadRequest)
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ result: false, error: getReasonPhrase(StatusCodes.BAD_REQUEST), message: err.message });
+
+    // 404
+    if (err instanceof NotFound)
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ result: false, error: getReasonPhrase(StatusCodes.NOT_FOUND), message: err.message });
+  }
+```
+
+>Important : You need to import BadRequest and NotFound and so on errors from ***Errors*** folder.
+
+Here we list out all the available custom error handlers.
+
+    - BadRequest (400)
+    - Conflict (409)
+    - Forbidden (403)
+    - InternalServerError (500)
+    - Unauthorized (401)
+    - UnproccessableEntity (422)
+
+In future we'll add more customization errors stay tune.
 
 ## Latest Updates
 
 ## History
+
+### Author : Mohamed Jakkariya R.
+
+### Contributors
