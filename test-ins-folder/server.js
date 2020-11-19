@@ -2,8 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const path = require('path');
-const Logger = require('js-logger');
-const bodyParser = require('body-parser');
 
 // Set default root path
 global.ROOT_PATH = path.resolve(__dirname);
