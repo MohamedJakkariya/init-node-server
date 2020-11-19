@@ -2,7 +2,7 @@ const express = require('express');
 const chalk = require('chalk');
 const Logger = require('js-logger');
 const { StatusCodes, getReasonPhrase } = require('http-status-codes');
-const pool = require('../../config/db');
+const pool = require('../../config');
 const { poolConnect } = require('../../db');
 const BadRequest = require('../Errors/BadRequest');
 
