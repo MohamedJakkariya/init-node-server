@@ -3,25 +3,25 @@
 1. [Overview](#overview)
 2. [Advantages](#advantages)
 3. [Database Functions](#database-functions)
-   - [poolConnect(connection, options)](#poolConnect(connection,-options))
+   - [poolConnect(connection, options)](#poolConnect)
 
-   - [getAll(connection, options)](#getAll(connection,-options))
+   - [getAll(connection, options)](#getAll)
 
-   - [getOne(connection, options)](#getOne(connection,-options))
+   - [getOne(connection, options)](#getOne)
 
-   - [getMulti(connection, options)](#getMulti(connection,-options))
+   - [getMulti(connection, options)](#getMulti)
 
-   - [insertOne(connection, options)](#insertOne(connection,-options))
+   - [insertOne(connection, options)](#insertOne)
 
-   - [insertIntoMultiData(connection, options)](#insertIntoMultiData(connection,-options))
+   - [insertIntoMultiData(connection, options)](#insertIntoMultiData)
 
-   - [insertIntoMultiTables(connection, options)](#insertIntoMultiTables(connection,-options))
+   - [insertIntoMultiTables(connection, options)](#insertIntoMultiTables)
 
-   - [deleteOne(connection, options)](#deleteOne(connection,-options))
+   - [deleteOne(connection, options)](#deleteOne)
 
-   - [foreignKeyMode(connection, mode)](#foreignKeyMode(connection,-mode))
+   - [foreignKeyMode(connection, mode)](#foreignKeyMode)
 
-4. [Customer Error Handling](#Customer-Error-Handling)
+4. [Custome Error Handling](#Custome-Error-Handling)
 5. [Latest Updates](#latest-updates)
 6. [History](#history)
 
@@ -66,6 +66,7 @@ Each function had to pass two parameters such as connection __object__ and optio
     - Each and every function return ***Promise***. So you can use latest ES6 feature await and arrow functions for getting results.
     - Promise resolved by data come from tables.
 
+<a href="#poolConnect"></a>
 ### poolConnect(connection, options)
 
 You can see the modal GET request by using dynamic pool connection. so only thing is you need to import poolConnection from ```../db/index.js``` file and also you need to import pool connection object from ```../config/index.js```. Finally pass the pool connection object to ```poolConnect(pool)``` method. Everything looks fine and now ready to go for make your route. 
@@ -100,6 +101,7 @@ router.get('/test', async (req, res) => {
 });
 ```
 
+<a href="#getAll"></a>
 ### getAll(connection, options)
 
 ```js
