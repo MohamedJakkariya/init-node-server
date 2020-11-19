@@ -16,7 +16,7 @@
     "url": "https://github.com/MohamedJakkariya/init-node-server.git"
   },
   "preferGlobal": true,
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "To make simple node sql exress server with single line",
   "main": "index.js",
   "author": "Mohamed Jakkariya",
