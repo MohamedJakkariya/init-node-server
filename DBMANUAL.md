@@ -66,7 +66,7 @@ Each function had to pass two parameters such as connection __object__ and optio
     - Each and every function return ***Promise***. So you can use latest ES6 feature await and arrow functions for getting results.
     - Promise resolved by data come from tables.
 
-<a href="#poolConnect"></a>
+<a name="#poolConnect"></a>
 ### poolConnect(connection, options)
 
 You can see the modal GET request by using dynamic pool connection. so only thing is you need to import poolConnection from ```../db/index.js``` file and also you need to import pool connection object from ```../config/index.js```. Finally pass the pool connection object to ```poolConnect(pool)``` method. Everything looks fine and now ready to go for make your route. 
@@ -101,7 +101,7 @@ router.get('/test', async (req, res) => {
 });
 ```
 
-<a href="#getAll"></a>
+<a name="#getAll"></a>
 ### getAll(connection, options)
 
 ```js
