@@ -1,5 +1,7 @@
 This package is used to initiate the sql with node server by single line for making developer life easy.
 
+Here [refer](https://github.com/MohamedJakkariya/init-node-server/blob/v2.x/DBMANUAL.md) our all customize sql db functions to make your code a lot modular.
+
 > Step 1 :
 > To install the init-node-server package as globally by using following command.
 
