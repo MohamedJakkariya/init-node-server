@@ -14,7 +14,7 @@ This package under development if you want to use just try for alpha-1.0.1v test
 
 ## Installation
 
-```npm2ysarn
+```npm2yarn
 npm i init-node-server
 ```
 
