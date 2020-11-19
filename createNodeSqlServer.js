@@ -185,7 +185,18 @@ function run(root, serverName, verbose, originalDirectory, template) {
   /**
    * Here put all our dependencies one by one
    */
-  const allDependencies = ['express', 'body-parser', 'mysql', 'debug', 'js-logger', 'morgan', 'nodemon', 'dotenv'];
+  const allDependencies = [
+    'express',
+    'body-parser',
+    'mysql',
+    'debug',
+    'js-logger',
+    'morgan',
+    'nodemon',
+    'dotenv',
+    'http-status-codes',
+    'chalk'
+  ];
 
   Promise.all([getTemplateInstallPackage(template, originalDirectory)]).then(([templateToInstall]) => {
     log('Installing packages. This might take a couple of minutes.');
@@ -309,8 +320,8 @@ function checkServerName(serverName) {
     error(
       chalk.red(`Cannot create a project named ${chalk.green(`"${serverName}"`)} because of npm naming restrictions:\n`)
     );
-    [...(validationResult.errors || []), ...(validationResult.warnings || [])].forEach(error => {
-      error(chalk.red(`  * ${error}`));
+    [...(validationResult.errors || []), ...(validationResult.warnings || [])].forEach(err => {
+      error(chalk.red(`  * ${err}`));
     });
     error(chalk.red('\nPlease choose a different project name.'));
     process.exit(1);
