@@ -320,8 +320,8 @@ function checkServerName(serverName) {
     error(
       chalk.red(`Cannot create a project named ${chalk.green(`"${serverName}"`)} because of npm naming restrictions:\n`)
     );
-    [...(validationResult.errors || []), ...(validationResult.warnings || [])].forEach(error => {
-      error(chalk.red(`  * ${error}`));
+    [...(validationResult.errors || []), ...(validationResult.warnings || [])].forEach(err => {
+      error(chalk.red(`  * ${err}`));
     });
     error(chalk.red('\nPlease choose a different project name.'));
     process.exit(1);
