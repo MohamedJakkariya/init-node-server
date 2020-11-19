@@ -1,7 +1,5 @@
 This package is used to initiate the sql with node server by single line for making developer life easy.
 
-To install the server as globally by using following npm command.
-
 > Step 1 :
 > To install the init-node-server package as globally by using following command.
 
@@ -10,7 +8,7 @@ npm i -g init-node-server
 ```
 
 > Step 2 : <br>
-> Initiate the server by following commands and go into the created folder. <br> > **Note** : skip the **Step 1** if aldready done.
+> Initiate the server by following commands and go into the created folder. <br> **Note** : skip the **Step 1** if aldready done.
 
 ```
 init-node-server my-server

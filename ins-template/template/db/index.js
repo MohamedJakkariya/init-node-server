@@ -23,7 +23,7 @@ exports.poolConnect = pool => {
  */
 exports.getAll = (connection, options) => {
   return new Promise((resolve, reject) => {
-    connection.query(`SELECT ${options.projection} FROM ${options.table_names}`, (err, results) => {
+    connection.query(`SELECT ${options.projections} FROM ${options.table_names}`, (err, results) => {
       if (err) return reject(err);
 
       return resolve(results);
@@ -40,7 +40,7 @@ exports.getOne = (connection, options) => {
   return new Promise((resolve, reject) => {
     connection.query(
       `SELECT ${options.projection} FROM ${options.table_name} WHERE ${options.condition}`,
-      options.value,
+      options.values,
       (err, result) => {
         if (err) return reject(err);
         return resolve(result);
@@ -89,9 +89,9 @@ exports.deleteOne = (connection, options) => {
 exports.getMulti = (connection, options) => {
   return new Promise((resolve, reject) => {
     connection.query(
-      `select ${options.projection}  from ${options.table_names} where ${options.conditions} 
+      `select ${options.projections}  from ${options.table_names} where ${options.conditions} 
     `,
-      options.value,
+      options.values,
       (err, results) => {
         if (err) return reject(err);
 

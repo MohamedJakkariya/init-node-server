@@ -185,7 +185,18 @@ function run(root, serverName, verbose, originalDirectory, template) {
   /**
    * Here put all our dependencies one by one
    */
-  const allDependencies = ['express', 'body-parser', 'mysql', 'debug', 'js-logger', 'morgan', 'nodemon', 'dotenv'];
+  const allDependencies = [
+    'express',
+    'body-parser',
+    'mysql',
+    'debug',
+    'js-logger',
+    'morgan',
+    'nodemon',
+    'dotenv',
+    'http-status-codes',
+    'chalk'
+  ];
 
   Promise.all([getTemplateInstallPackage(template, originalDirectory)]).then(([templateToInstall]) => {
     log('Installing packages. This might take a couple of minutes.');
