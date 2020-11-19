@@ -3,23 +3,23 @@
 1. [Overview](#overview)
 2. [Advantages](#advantages)
 3. [Database Functions](#database-functions)
-   - [poolConnect(connection, options)](#poolConnect)
+   - [poolConnect(connection, options)](#poolConnect(connection,options))
 
-   - [getAll(connection, options)](#getAll)
+   - [getAll(connection, options)](#getAll(connection,options))
 
-   - [getOne(connection, options)](#getOne)
+   - [getOne(connection, options)](#getOne(connection,options))
 
-   - [getMulti(connection, options)](#getMulti)
+   - [getMulti(connection, options)](#getMulti(connection,options))
 
-   - [insertOne(connection, options)](#insertOne)
+   - [insertOne(connection, options)](#insertOne(connection,options))
 
-   - [insertIntoMultiData(connection, options)](#insertIntoMultiData)
+   - [insertIntoMultiData(connection, options)](#insertIntoMultiData(connection,options))
 
-   - [insertIntoMultiTables(connection, options)](#insertIntoMultiTables)
+   - [insertIntoMultiTables(connection, options)](#insertIntoMultiTables(connection,options))
 
-   - [deleteOne(connection, options)](#deleteOne)
+   - [deleteOne(connection, options)](#deleteOne(connection,options))
 
-   - [foreignKeyMode(connection, mode)](#foreignKeyMode)
+   - [foreignKeyMode(connection, mode)](#foreignKeyMode(connection,mode))
 
 4. [Custome Error Handling](#Custome-Error-Handling)
 5. [Latest Updates](#latest-updates)
@@ -66,8 +66,7 @@ Each function had to pass two parameters such as connection __object__ and optio
     - Each and every function return ***Promise***. So you can use latest ES6 feature await and arrow functions for getting results.
     - Promise resolved by data come from tables.
 
-<a name="#poolConnect"></a>
-### poolConnect(connection, options)
+### poolConnect(connection,options)
 
 You can see the modal GET request by using dynamic pool connection. so only thing is you need to import poolConnection from ```../db/index.js``` file and also you need to import pool connection object from ```../config/index.js```. Finally pass the pool connection object to ```poolConnect(pool)``` method. Everything looks fine and now ready to go for make your route. 
 
@@ -101,8 +100,7 @@ router.get('/test', async (req, res) => {
 });
 ```
 
-<a name="#getAll"></a>
-### getAll(connection, options)
+### getAll(connection,options)
 
 ```js
     const result = await getAll(connection, {
@@ -111,7 +109,7 @@ router.get('/test', async (req, res) => {
     });
 ```
 
-### getOne(connection, options)
+### getOne(connection,options)
 
 ```js
     const result = await getOne(connection, {
@@ -122,7 +120,7 @@ router.get('/test', async (req, res) => {
     });
 ```
 
-### getMulti(connection, options)
+### getMulti(connection,options)
 
 ```js
     const result = await getMulti(connection, {
@@ -133,7 +131,7 @@ router.get('/test', async (req, res) => {
     });
 ```
 
-### insertOne(connection, options)
+### insertOne(connection,options)
 
 ```js
     const result = await insertOne(connection, {
@@ -147,7 +145,7 @@ router.get('/test', async (req, res) => {
     });
 ```
 
-### insertIntoMultiData(connection, options)
+### insertIntoMultiData(connection,options)
 
 ```js
     const result = await insertIntoMultiData(connection, {
@@ -167,7 +165,7 @@ router.get('/test', async (req, res) => {
     });
 ```
 
-### insertIntoMultiTables(connection, options)
+### insertIntoMultiTables(connection,options)
 
 ```js
     const result = await insertIntoMultiTables(connection, [
@@ -190,7 +188,7 @@ router.get('/test', async (req, res) => {
     ]);
 ```
 
-### deleteOne(connection, options)
+### deleteOne(connection,options)
 
 ```js
     const result = await deleteOne(connection, {
@@ -200,7 +198,7 @@ router.get('/test', async (req, res) => {
     });
 ```
 
-### foreignKeyMode(connection, mode)
+### foreignKeyMode(connection,mode)
 
 > Note : <br>
 > Here ***0*** means foreign key constraint disable on your db. <br>
