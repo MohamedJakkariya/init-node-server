@@ -29,7 +29,7 @@ Logger.useDefaults();
 Logger.setLevel(process.env.LOGGER === 'production' ? Logger.INFO : Logger.DEBUG);
 
 // Set static folder path
-app.use(express.static(path.join(__dirname, process.env.BUILD_PATH)));
+// app.use(express.static(path.join(__dirname, process.env.BUILD_PATH)));
 
 // Base api route initialization
 app.use('/api/example', require('./api/routers/example'));
