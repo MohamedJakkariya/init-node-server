@@ -14,25 +14,16 @@ npm i -g init-node-server
 
 ```
 init-node-server my-server
-cd my-server
 ```
 
 > Step 3 : <br>
-> To add your **database** credentials to **.env** file. <br>
-> Something look like following key values.
+> To setup up your db configurations. <br>
 
-```env
-// Database configurations
-DB_HOSTNAME='localhost';
-DB_USERNAME='root';
-DB_PASSWORD='<YOUR_DATABASE_PASSWORD>';
-DB_PORT='3306';
-DB_NAME='<YOUR_DATABASE_NAME>';
+```
+cd my-server
 ```
 
-> **Important** : <span style="text-decoration : underline"> Uncomment </span> the **.env** file from **.gitignore** file before pushed to github.
-
-> Setp 4 : <br>
+> Step 4 : <br>
 > To start the developemnt server by using following command.
 
 ```npm
