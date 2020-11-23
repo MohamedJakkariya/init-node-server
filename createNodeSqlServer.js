@@ -220,13 +220,10 @@ function run(root, serverName, verbose, originalDirectory, template) {
 
         // To move a folder
         fs.copySync(`${root}\\node_modules\\${templateName}\\template`, root, function (err) {
-          if (err) {
-            error(err);
-            return new Error(err);
-          } else {
-            log('folder successfully  copied');
-            return;
-          }
+          if (err) return new Error(err);
+
+          log('folder successfully  copied');
+          return;
         });
       })
       .catch(reason => {
