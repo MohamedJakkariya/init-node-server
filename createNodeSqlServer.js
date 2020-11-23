@@ -13,6 +13,7 @@ const spawn = require('cross-spawn');
 const tmp = require('tmp');
 const commander = require('commander');
 const packageJson = require('./package.json');
+const inquirer = require('inquirer');
 const validateProjectName = require('validate-npm-package-name');
 
 // Simplify the log statement
