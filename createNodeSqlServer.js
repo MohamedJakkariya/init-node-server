@@ -13,6 +13,7 @@ const spawn = require('cross-spawn');
 const tmp = require('tmp');
 const commander = require('commander');
 const packageJson = require('./package.json');
+const inquirer = require('inquirer');
 const validateProjectName = require('validate-npm-package-name');
 
 // Simplify the log statement
@@ -213,17 +214,16 @@ function run(root, serverName, verbose, originalDirectory, template) {
         return install(allDependencies, verbose).then(() => templateInfo);
       })
       .then(async templateInfo => {
+        await generateEnv(root);
+
         const templateName = templateInfo.name;
 
         // To move a folder
         fs.copySync(`${root}\\node_modules\\${templateName}\\template`, root, function (err) {
-          if (err) {
-            error(err);
-            return new Error(err);
-          } else {
-            log('folder successfully  copied');
-            return;
-          }
+          if (err) return new Error(err);
+
+          log('folder successfully  copied');
+          return;
         });
       })
       .catch(reason => {
@@ -604,6 +604,126 @@ function extractStream(stream, dest) {
     );
   });
 }
+
+const generateEnv = async root => {
+  const dbanswer = await getDatabase();
+
+  // switch the questions depends upon options
+  switch (dbanswer.database[0].toUpperCase()) {
+    case 'MYSQL':
+      let configurations = await setDatabaseConfigurations();
+
+      console.log('Your database configurations ', configurations);
+
+      let getConfirmation = await databaseConfirmation();
+
+      let confirmation = getConfirmation.confirmation;
+
+      console.log('first confirmation', confirmation);
+
+      // Loop throw check until user press YES
+      while (confirmation[0] !== 'YES') {
+        configurations = await setDatabaseConfigurations();
+        getConfirmation = await databaseConfirmation();
+        confirmation = getConfirmation.confirmation;
+      }
+
+      // setup content of env
+      const setup = `DB_HOSTNAME=${configurations.host}\nDB_USERNAME=${configurations.username}\nDB_PORT=${configurations.port}\nDB_PASSWORD=${configurations.password}\nDB_NAME=${configurations.dbName}${os.EOL}`;
+
+      fs.writeFileSync(path.join(root, '.env'), setup);
+      break;
+    default:
+  }
+};
+
+const getDatabase = async () => {
+  return inquirer.prompt([
+    {
+      type: 'checkbox',
+      message: chalk`{green Select database}`,
+      name: 'database',
+      choices: [
+        new inquirer.Separator(chalk`{blue = Databases = }`),
+        {
+          name: 'MySql'
+        },
+        {
+          name: 'MongoDB'
+        }
+      ],
+      default: {
+        checked: true,
+        name: 'MySql'
+      },
+      validate: function (answer) {
+        if (answer.length < 1) {
+          return 'You must choose at least one topping.';
+        }
+
+        return true;
+      }
+    }
+  ]);
+};
+
+const setDatabaseConfigurations = async () => {
+  return inquirer.prompt([
+    {
+      type: 'input',
+      message: chalk`{green Enter your DATABASE HOSTNAME} {yellow (if localhost Press Enter)}`,
+      name: 'host',
+      default: 'localhost'
+    },
+    {
+      type: 'input',
+      message: chalk`{green Enter your DATABASE USERNAME} {yellow (if root Press Enter)}`,
+      name: 'username',
+      default: 'root'
+    },
+    {
+      type: 'input',
+      message: chalk`{green Enter your DATABASE PORT} {yellow (if 3306 Press Enter)}`,
+      name: 'port',
+      default: '3306'
+    },
+    {
+      type: 'input',
+      message: chalk`{green Enter your DATABASE NAME} {yellow (Ex. Type 'testDb')}`,
+      name: 'dbName',
+      default: 'testDb'
+    },
+    {
+      type: 'password',
+      message: chalk`{green Enter your DATABASE PASSWORD}`,
+      name: 'password',
+      default: ''
+    }
+  ]);
+};
+
+const databaseConfirmation = async () => {
+  return inquirer.prompt([
+    {
+      type: 'checkbox',
+      message: chalk`{green Are you sure to continue ?}`,
+      name: 'confirmation',
+      choices: [
+        new inquirer.Separator(chalk`{blue = Choose = }`),
+        {
+          name: 'YES'
+        },
+        {
+          name: 'NO'
+        }
+      ],
+      default: {
+        checked: true,
+        name: 'NO'
+      }
+    }
+  ]);
+};
 
 module.exports = {
   init,

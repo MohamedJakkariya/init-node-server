@@ -1,7 +1,7 @@
 # NOTE : Please Uncommented .env while before you pushed into github or productions
 
 # dotenv environment variables file
-# .env
+.env
 .env.test
 
 /test
