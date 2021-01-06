@@ -1,5 +1,3 @@
-'use strict';
-
 const https = require('https');
 const chalk = require('chalk');
 const envinfo = require('envinfo');
